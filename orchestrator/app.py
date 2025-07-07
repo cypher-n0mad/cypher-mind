@@ -1,10 +1,5 @@
 # orchestrator/app.py
 # FastAPI server tailored for Ollama local LLM inference
-# Requirements:
-#   pip install fastapi uvicorn python-dotenv
-# Usage:
-#   OLLAMA_MODEL=llama3:8b-q4_K_M \
-#   uvicorn orchestrator.app:app --uds /run/ai.sock --reload
 
 import os
 import shlex
