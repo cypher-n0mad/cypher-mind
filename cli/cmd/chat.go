@@ -13,6 +13,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"os/user"
 	"path/filepath"
 	"strings"
 	"time"
@@ -71,7 +72,8 @@ func runChat(cmd *cobra.Command, _ []string) error {
 			DialContext: func(_ context.Context, _, _ string) (net.Conn, error) {
 				return net.Dial("unix", socketPath)
 			},
-			ForceAttemptHTTP2: false, // simpler streaming over HTTP/1.1
+			ForceAttemptHTTP2:     false,            // simpler streaming over HTTP/1.1
+			ResponseHeaderTimeout: 30 * time.Second, // wait up to 30s for header
 		},
 		Timeout: 0, // streaming; no fixed timeout
 	}
@@ -90,8 +92,9 @@ func runChat(cmd *cobra.Command, _ []string) error {
 		fmt.Printf("(Transcript will be saved to %s on exit)\n", savePath)
 	}
 
+	currentUser := "\n" + GetUsername() + "> "
 	for {
-		fmt.Print("\nyou> ")
+		fmt.Print(currentUser)
 		if !sc.Scan() {
 			break
 		}
@@ -151,13 +154,8 @@ func runChat(cmd *cobra.Command, _ []string) error {
 		}
 		req.Header.Set("Content-Type", "application/json")
 
-		// Optional: timeout per request so we don't hang forever
-		ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
-		req = req.WithContext(ctx)
-
 		// Send request
 		resp, err := client.Do(req)
-		cancel()
 		if err != nil {
 			fmt.Printf("Request failed: %v\n", err)
 			continue
@@ -170,7 +168,7 @@ func runChat(cmd *cobra.Command, _ []string) error {
 		}
 
 		// Stream raw text response to stdout, while buffering to append to history
-		fmt.Print("ai > ")
+		fmt.Print("cyphermind> ")
 		assistantText, err := readRawTextStream(resp.Body, os.Stdout)
 		resp.Body.Close()
 		if err != nil {
@@ -186,6 +184,26 @@ func runChat(cmd *cobra.Command, _ []string) error {
 		log.Printf("Input error: %v", err)
 	}
 	return saveIfNeeded(messages)
+}
+
+func GetUsername() string {
+	// Attempt to get the username from the PATH environment variable.
+	user, err := user.Current()
+	if err != nil {
+		// If the PATH variable is not set, or if there's an error accessing it,
+		// fall back to a simpler method.
+		return "Unknown"
+	}
+
+	// Convert the username to a string.
+	username := strings.TrimSpace(user.Username)
+
+	// Check if the username is empty after trimming whitespace.
+	if username == "" {
+		return "Unknown" // Handle empty usernames
+	}
+
+	return username
 }
 
 // readRawTextStream copies raw bytes to out and also buffers them to return a string.
