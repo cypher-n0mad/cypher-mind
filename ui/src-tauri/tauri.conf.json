@@ -1,15 +1,18 @@
 {
+  "$schema": "https://raw.githubusercontent.com/tauri-apps/tauri/v2/tooling/cli/schema.json",
+  "identifier": "dev.n0mad.llmchat",
+  "version": "0.1.0",
+  "productName": "LLM Chat",
   "build": {
     "beforeDevCommand": "vite",
     "beforeBuildCommand": "vite build",
-    "devPath": "http://localhost:5173",
-    "distDir": "dist"
+    "devUrl": "http://localhost:5173",
+    "frontendDist": "../dist"
   },
-  "package": { "productName": "LLM Chat", "version": "0.1.0" },
-  "tauri": {
+  "app": {
     "windows": [
       { "title": "LLM Chat", "width": 1080, "height": 720 }
-    ],
-    "bundle": { "active": true }
-  }
+    ]
+  },
+  "bundle": { "active": true }
 }
