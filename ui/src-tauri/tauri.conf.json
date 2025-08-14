@@ -1,0 +1,15 @@
+{
+  "build": {
+    "beforeDevCommand": "vite",
+    "beforeBuildCommand": "vite build",
+    "devPath": "http://localhost:5173",
+    "distDir": "dist"
+  },
+  "package": { "productName": "LLM Chat", "version": "0.1.0" },
+  "tauri": {
+    "windows": [
+      { "title": "LLM Chat", "width": 1080, "height": 720 }
+    ],
+    "bundle": { "active": true }
+  }
+}
